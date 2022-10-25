@@ -1,33 +1,14 @@
 import Tile from "../Tile/Tile";
 import React, { useRef, useState } from "react";
 import "./Chessboard.css";
-import b_pawn from "../../assets/pawn_b.png";
-import w_pawn from "../../assets/pawn_w.png";
-import b_rook from "../../assets/rook_b.png";
-import w_rook from "../../assets/rook_w.png";
-import w_knight from "../../assets/knight_w.png";
-import b_knight from "../../assets/knight_b.png";
-import b_bishop from "../../assets/bishop_b.png";
-import w_bishop from "../../assets/bishop_w.png";
-import w_queen from "../../assets/queen_w.png";
-import b_queen from "../../assets/queen_b.png";
-import b_king from "../../assets/king_b.png";
-import w_king from "../../assets/king_w.png";
 import Referee from "../../referee/Referee";
-
-const VerticalAxis = ["1", "2", "3", "4", "5", "6", "7", "8"];
-const HorizontalAxis = ["a", "b", "c", "d", "e", "f", "g", "h"];
-
-class Piece {
-  constructor(image, x, y, type, team, enPassant) {
-    this.image = image;
-    this.x = x;
-    this.y = y;
-    this.type = type;
-    this.team = team;
-    this.enPassant = enPassant;
-  }
-}
+import {
+  HORIZONTAL_AXIS,
+  VERTICAL_AXIS,
+  initialBoardState,
+  GRID_SIZE,
+  GRID_CENTER,
+} from "../../Constants";
 
 function Chessboard() {
   const [gridX, setGridX] = useState(0);
@@ -37,44 +18,6 @@ function Chessboard() {
   const chessboardRef = useRef(null);
   const referee = new Referee();
 
-  // Initialize pieces positions
-  const initialBoardState = [];
-
-  //---------pawns----------
-  for (let i = 0; i < 8; i++) {
-    initialBoardState.push(new Piece(b_pawn, i, 6, "PAWN", "OPPONENT"));
-  }
-
-  for (let i = 0; i < 8; i++) {
-    initialBoardState.push(new Piece(w_pawn, i, 1, "PAWN", "OUR"));
-  }
-
-  //--------rooks----------
-  initialBoardState.push(new Piece(b_rook, 0, 7, "ROOK", "OPPONENT"));
-  initialBoardState.push(new Piece(b_rook, 7, 7, "ROOK", "OPPONENT"));
-  initialBoardState.push(new Piece(w_rook, 0, 0, "ROOK", "OUR"));
-  initialBoardState.push(new Piece(w_rook, 7, 0, "ROOK", "OUR"));
-
-  //--------knights-----------
-  initialBoardState.push(new Piece(b_knight, 1, 7, "KNIGHT", "OPPONENT"));
-  initialBoardState.push(new Piece(b_knight, 6, 7, "KNIGHT", "OPPONENT"));
-  initialBoardState.push(new Piece(w_knight, 1, 0, "KNIGHT", "OUR"));
-  initialBoardState.push(new Piece(w_knight, 6, 0, "KNIGHT", "OUR"));
-
-  //----------bishops---------------
-  initialBoardState.push(new Piece(b_bishop, 2, 7, "BISHOP", "OPPONENT"));
-  initialBoardState.push(new Piece(b_bishop, 5, 7, "BISHOP", "OPPONENT"));
-  initialBoardState.push(new Piece(w_bishop, 2, 0, "BISHOP", "OUR"));
-  initialBoardState.push(new Piece(w_bishop, 5, 0, "BISHOP", "OUR"));
-
-  //------------queens--------
-  initialBoardState.push(new Piece(b_queen, 3, 7, "QUEEN", "OPPONENT"));
-  initialBoardState.push(new Piece(w_queen, 3, 0, "QUEEN", "OUR"));
-
-  //------------kings------------
-  initialBoardState.push(new Piece(b_king, 4, 7, "KING", "OPPONENT"));
-  initialBoardState.push(new Piece(w_king, 4, 0, "KING", "OUR"));
-
   const [pieces, setPieces] = useState(initialBoardState);
 
   //For piece grabbing and moving
@@ -83,14 +26,14 @@ function Chessboard() {
     const element = e.target;
     const chessboard = chessboardRef.current;
     if (element.classList.contains("chess-piece") && chessboard) {
-      const gridX = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
+      const gridX = Math.floor((e.clientX - chessboard.offsetLeft) / GRID_SIZE);
       const gridY = Math.abs(
-        Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100)
+        Math.ceil((e.clientY - chessboard.offsetTop - 800) / GRID_SIZE)
       );
       setGridX(gridX);
       setGridY(gridY);
-      const x = e.clientX - 50; // -50 is the offset of the image
-      const y = e.clientY - 50;
+      const x = e.clientX - GRID_CENTER; // -50 is the offset of the image
+      const y = e.clientY - GRID_CENTER;
       element.style.position = "absolute";
       element.style.left = `${x}px`;
       element.style.top = `${y}px`;
@@ -133,13 +76,13 @@ function Chessboard() {
     const chessboard = chessboardRef.current;
 
     if (activePiece && chessboard) {
-      const x = Math.floor((e.clientX - chessboard.offsetLeft) / 100);
+      const x = Math.floor((e.clientX - chessboard.offsetLeft) / GRID_SIZE);
       const y = Math.abs(
-        Math.ceil((e.clientY - chessboard.offsetTop - 800) / 100)
+        Math.ceil((e.clientY - chessboard.offsetTop - 800) / GRID_SIZE)
       );
 
       const currentPiece = pieces.find((p) => p.x === gridX && p.y === gridY);
-      const attackedPiece = pieces.find((p) => p.x === x && p.y === y);
+      // const attackedPiece = pieces.find((p) => p.x === x && p.y === y);
 
       if (currentPiece) {
         const validMove = referee.isValidMove(
@@ -215,22 +158,18 @@ function Chessboard() {
   }
 
   let board = [];
-  for (let j = VerticalAxis.length - 1; j >= 0; j--) {
-    for (let i = 0; i < HorizontalAxis.length; i++) {
-      let color;
+  for (let j = VERTICAL_AXIS.length - 1; j >= 0; j--) {
+    let color;
+    for (let i = 0; i < HORIZONTAL_AXIS.length; i++) {
       if ((i % 2 === 0 && j % 2 !== 0) || (i % 2 !== 0 && j % 2 === 0)) {
         color = "white-tile";
       } else {
         color = "black-tile";
       }
 
-      let image = undefined;
-      pieces.forEach((p) => {
-        // The x and y position is to determine where in the board the image of the pawn will be placed
-        if (p.x === i && p.y === j) {
-          image = p.image;
-        }
-      });
+      // The x and y position is to determine where in the board the image of the pawn will be placed
+      const piece = pieces.find((p) => p.x === i && p.y === j);
+      let image = piece ? piece.image : undefined;
 
       board.push(<Tile key={`${i},${j}`} color={color} image={image}></Tile>);
     }
