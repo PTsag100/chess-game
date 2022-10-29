@@ -30,7 +30,7 @@ class Referee {
   }
 
   isValidMove(px, py, x, y, type, team, boardState) {
-    //---------PAWN MOVMENT--------------
+    //---------PAWN MOVEMENT--------------
 
     if (type === "PAWN") {
       // if it's in the first row so the pawn can move up to 2 tiles
@@ -55,9 +55,95 @@ class Referee {
         }
       }
     }
-
     //-------------------------------------------------
-
+    //---------------KNIGHT MOVEMENT-------------------
+    else if (type === "KNIGHT") {
+      if (Math.abs(y - py) === 2) {
+        if (x - px === -1) {
+          // if the tile is empty or is occupied by opponent move there
+          return !(
+            this.tileIsOccupied(x, y, boardState) &&
+            !this.tileIsOccupiedByOpponent(x, y, boardState, team)
+          );
+        } else if (x - px === 1) {
+          // if the tile is empty or is occupied by opponent move there
+          return !(
+            this.tileIsOccupied(x, y, boardState) &&
+            !this.tileIsOccupiedByOpponent(x, y, boardState, team)
+          );
+        }
+      } else if (Math.abs(x - px) === 2) {
+        if (y - py === -1) {
+          // if the tile is empty or is occupied by opponent move there
+          return !(
+            this.tileIsOccupied(x, y, boardState) &&
+            !this.tileIsOccupiedByOpponent(x, y, boardState, team)
+          );
+        } else if (y - py === 1) {
+          // if the tile is empty or is occupied by opponent move there
+          return !(
+            this.tileIsOccupied(x, y, boardState) &&
+            !this.tileIsOccupiedByOpponent(x, y, boardState, team)
+          );
+        }
+      }
+    }
+    //----------------------------------------------------
+    //----------BISHOP MOVEMENT---------------------------
+    else if (type === "BISHOP") {
+      for (let i = 1; i < 8; i++) {
+        // check if there is a piece in the top right path
+        if (x > px && y > py) {
+          let passedPosition = { x: px + i, y: py + i };
+          if (
+            this.tileIsOccupied(passedPosition.x, passedPosition.y, boardState)
+          ) {
+            console.log("illegal move");
+            break;
+          }
+        }
+        // check if there is a piece in the bottom right path
+        else if (x > px && y < py) {
+          let passedPosition = { x: px + i, y: py - i };
+          if (
+            this.tileIsOccupied(passedPosition.x, passedPosition.y, boardState)
+          ) {
+            console.log("illegal move");
+            break;
+          }
+        }
+        // check if there is a piece in the top left path
+        else if (x < px && y > py) {
+          let passedPosition = { x: px - i, y: py + i };
+          if (
+            this.tileIsOccupied(passedPosition.x, passedPosition.y, boardState)
+          ) {
+            console.log("illegal move");
+            break;
+          }
+        }
+        // check if there is a piece in the bottom left path
+        else if (x < px && y < py) {
+          let passedPosition = { x: px - i, y: py - i };
+          if (
+            this.tileIsOccupied(passedPosition.x, passedPosition.y, boardState)
+          ) {
+            console.log("illegal move");
+            break;
+          }
+        }
+        // if it reaches in any of these conditions it means it never found any piece in it's path so it can move there
+        if (x - px === i && y - py === i) {
+          return true;
+        } else if (x - px === -i && y - py === i) {
+          return true;
+        } else if (x - px === i && y - py === -i) {
+          return true;
+        } else if (x - px === -i && y - py === -i) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 }
