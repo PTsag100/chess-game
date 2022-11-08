@@ -7,12 +7,23 @@ import {
   VERTICAL_AXIS,
   initialBoardState,
   GRID_SIZE,
-  GRID_CENTER,
 } from "../../Constants";
+
+import w_knight from "../../assets/knight_w.png";
+import w_bishop from "../../assets/bishop_w.png";
+import w_rook from "../../assets/rook_w.png";
+import w_queen from "../../assets/queen_w.png";
+
+import b_knight from "../../assets/knight_b.png";
+import b_bishop from "../../assets/bishop_b.png";
+import b_rook from "../../assets/rook_b.png";
+import b_queen from "../../assets/queen_b.png";
 
 function Chessboard() {
   const [gridX, setGridX] = useState(0);
   const [gridY, setGridY] = useState(0);
+  const [promotionPawn, setPromotionPawn] = useState(null);
+  const [showPromotionPanel, setShowPromotionPanel] = useState(false);
   const [activePiece, setActivePiece] = useState(null);
 
   const chessboardRef = useRef(null);
@@ -20,9 +31,19 @@ function Chessboard() {
 
   const [pieces, setPieces] = useState(initialBoardState);
 
+  function updateValidMoves() {
+    setPieces((currentPieces) => {
+      return currentPieces.map((p) => {
+        p.possibleMoves = referee.getValidMoves(p, currentPieces);
+        return p;
+      });
+    });
+  }
+
   //For piece grabbing and moving
 
   function grabPiece(e) {
+    updateValidMoves();
     const element = e.target;
     const chessboard = chessboardRef.current;
     if (element.classList.contains("chess-piece") && chessboard) {
@@ -32,8 +53,8 @@ function Chessboard() {
       );
       setGridX(gridX);
       setGridY(gridY);
-      const x = e.clientX - GRID_CENTER; // -50 is the offset of the image
-      const y = e.clientY - GRID_CENTER;
+      const x = e.clientX - 50; // -50 is the offset of the image
+      const y = e.clientY - 50;
       element.style.position = "absolute";
       element.style.left = `${x}px`;
       element.style.top = `${y}px`;
@@ -83,7 +104,6 @@ function Chessboard() {
 
       const currentPiece = pieces.find((p) => p.x === gridX && p.y === gridY);
       // const attackedPiece = pieces.find((p) => p.x === x && p.y === y);
-
       if (currentPiece) {
         const validMove = referee.isValidMove(
           gridX,
@@ -134,6 +154,11 @@ function Chessboard() {
               }
               piece.x = x;
               piece.y = y;
+              let promotionRow = piece.team === "OUR" ? 7 : 0;
+              if (y === promotionRow && piece.type === "PAWN") {
+                setPromotionPawn(piece);
+                setShowPromotionPanel(true);
+              }
               results.push(piece);
               //else if this is just another piece in the board leave it as it is
             } else if (!(piece.x === x && piece.y === y)) {
@@ -157,6 +182,58 @@ function Chessboard() {
     }
   }
 
+  function promotePawn(pieceType) {
+    console.log("promote pawn");
+    setShowPromotionPanel(false);
+    if (promotionPawn === undefined) {
+      return;
+    }
+    let updatedPieces = pieces.reduce((results, piece) => {
+      if (piece.x === promotionPawn.x && piece.y === promotionPawn.y) {
+        piece.type = pieceType;
+        if (piece.team === "OUR") {
+          switch (pieceType) {
+            case "KNIGHT":
+              piece.image = w_knight;
+              break;
+            case "BISHOP":
+              piece.image = w_bishop;
+              break;
+            case "ROOK":
+              piece.image = w_rook;
+              break;
+            case "QUEEN":
+              piece.image = w_queen;
+              break;
+            default:
+              piece.image = "";
+          }
+        } else {
+          switch (pieceType) {
+            case "KNIGHT":
+              piece.image = b_knight;
+              break;
+            case "BISHOP":
+              piece.image = b_bishop;
+              break;
+            case "ROOK":
+              piece.image = b_rook;
+              break;
+            case "QUEEN":
+              piece.image = b_queen;
+              break;
+            default:
+              piece.image = "";
+          }
+        }
+      }
+      results.push(piece);
+      return results;
+    }, []);
+    setPieces(updatedPieces);
+    return promotionPawn;
+  }
+
   let board = [];
   for (let j = VERTICAL_AXIS.length - 1; j >= 0; j--) {
     let color;
@@ -170,21 +247,63 @@ function Chessboard() {
       // The x and y position is to determine where in the board the image of the pawn will be placed
       const piece = pieces.find((p) => p.x === i && p.y === j);
       let image = piece ? piece.image : undefined;
+      let currentPiece =
+        activePiece != null
+          ? pieces.find((p) => p.x === gridX && p.y === gridY)
+          : undefined;
+      let highlight = currentPiece?.possibleMoves
+        ? currentPiece.possibleMoves.some((p) => p.x === i && p.y === j)
+        : false;
 
-      board.push(<Tile key={`${i},${j}`} color={color} image={image}></Tile>);
+      board.push(
+        <Tile
+          key={`${i},${j}`}
+          color={color}
+          image={image}
+          highlight={highlight}
+        ></Tile>
+      );
     }
   }
 
   return (
-    <div
-      id="chessboard"
-      onMouseMove={(e) => movePiece(e)}
-      onMouseDown={(e) => grabPiece(e)}
-      onMouseUp={(e) => dropPiece(e)}
-      ref={chessboardRef}
-    >
-      {board}
-    </div>
+    <>
+      <div
+        id="chessboard"
+        onMouseMove={(e) => movePiece(e)}
+        onMouseDown={(e) => grabPiece(e)}
+        onMouseUp={(e) => dropPiece(e)}
+        ref={chessboardRef}
+      >
+        {showPromotionPanel && (
+          <div id="pawn-promotion-model">
+            <div id="pawn-promotion-body">
+              <img
+                onClick={() => promotePawn("ROOK")}
+                src={promotionPawn.team === "OUR" ? w_rook : b_rook}
+                alt=""
+              />
+              <img
+                onClick={() => promotePawn("BISHOP")}
+                src={promotionPawn.team === "OUR" ? w_bishop : b_bishop}
+                alt=""
+              />
+              <img
+                onClick={() => promotePawn("KNIGHT")}
+                src={promotionPawn.team === "OUR" ? w_knight : b_knight}
+                alt=""
+              />
+              <img
+                onClick={() => promotePawn("QUEEN")}
+                src={promotionPawn.team === "OUR" ? w_queen : b_queen}
+                alt=""
+              />
+            </div>
+          </div>
+        )}
+        {board}
+      </div>
+    </>
   );
 }
 

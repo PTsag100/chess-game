@@ -7,3 +7,35 @@
   background-color: #779556;
   background-color: blue;
 }
+
+#pawn-promotion-model {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#pawn-promotion-body {
+  top: calc(50% - 150px);
+  left: calc(50% - 400px);
+  height: 300px;
+  width: 800px;
+  background-color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+#pawn-promotion-body img {
+  height: 120px;
+  padding: 20px;
+  border-radius: 50%;
+}
+
+#pawn-promotion-body img:hover {
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.3);
+}

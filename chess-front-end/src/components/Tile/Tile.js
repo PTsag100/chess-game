@@ -1,7 +1,7 @@
 import "./Tile.css";
 import React from "react";
 
-function Tile({ color, image }) {
+function Tile({ color, image, highlight }) {
   return (
     <div className={color + " tile"}>
       {
@@ -15,6 +15,7 @@ function Tile({ color, image }) {
           ></div>
         )
       }
+      {highlight && <div className="tile-highlight"></div>}
     </div>
   );
 }

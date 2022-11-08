@@ -31,3 +31,15 @@
 .tile img {
   width: 80px;
 }
+
+.tile-highlight {
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  position: absolute;
+  justify-self: center;
+  align-self: center;
+  z-index: 4;
+  pointer-events: none;
+}
